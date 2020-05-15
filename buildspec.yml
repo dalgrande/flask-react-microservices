@@ -19,12 +19,12 @@ phases:
       - >
         docker build \
           -f services/users/Dockerfile.prod \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
+          -t $881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
           ./services/users
       - >
         docker build \
           -f services/client/Dockerfile.prod \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
+          -t $881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
           --build-arg NODE_ENV=production \
           --build-arg REACT_APP_USERS_SERVICE_URL=$REACT_APP_USERS_SERVICE_URL \
           ./services/client
