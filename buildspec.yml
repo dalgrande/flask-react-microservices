@@ -32,7 +32,7 @@ phases:
       - >
         docker build \
           -f services/users/Dockerfile.prod \
-          -t .dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
           ./services/users
       - >
         docker build \
