@@ -4,6 +4,7 @@ env:
   variables:
     AWS_REGION: "us-west-1"
     REACT_APP_USERS_SERVICE_URL: "http://localhost:5001"
+    AWS_ACCOUNT_ID: "881345519777"
 
 phases:
   install:
@@ -13,6 +14,9 @@ phases:
     commands:
       - echo logging in to ecr...
       - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod || true
+      - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder || true
+      - docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod || true
   build:
     commands:
       - echo building and testing images...
@@ -28,16 +32,26 @@ phases:
       - >
         docker build \
           -f services/users/Dockerfile.prod \
-          -t 881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
+          -t .dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod \
           ./services/users
       - >
         docker build \
+          --target builder \
+          --cache-from $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder \
           -f services/client/Dockerfile.prod \
-          -t 881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder \
+          --build-arg NODE_ENV=production \
+          --build-arg REACT_APP_USERS_SERVICE_URL=$REACT_APP_USERS_SERVICE_URL \
+          ./services/client
+      - >      
+        docker build \
+          -f services/client/Dockerfile.prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod \
           --build-arg NODE_ENV=production \
           --build-arg REACT_APP_USERS_SERVICE_URL=$REACT_APP_USERS_SERVICE_URL \
           ./services/client
   post_build:
     commands:
-    - docker push 881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod
-    - docker push 881345519777.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-users:prod
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:builder
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-driven-client:prod
